@@ -1,4 +1,4 @@
-# nsf
+# nsf - new script file
 
 A minimal Unix utility to create executable Bash scripts with a shebang.
 
