@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Get filename from argument or prompt
+if [[ -n "$1" ]]; then
+    name="$1"
+else
+    read -rp "Enter the file name: " name
+fi
+
+# Check if filename is empty
+if [[ -z "$name" ]]; then
+    echo "Error: No filename provided."
+    exit 1
+fi
+
+# Check if file already exists
+if [[ -e "$name" ]]; then
+    read -rp "File '$name' already exists. Overwrite? (y/n): " answer
+    [[ "$answer" != "y" ]] && echo "Aborted." && exit 1
+fi
+
+# Create file with shebang
+printf '#!/usr/bin/env bash\n' > "$name"
+
+# Make it executable
+chmod +x --  "$name"
+
+echo "File '$name' created and made executable."
+
+
+
+
+
+
