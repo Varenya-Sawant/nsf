@@ -1,16 +1,100 @@
-# nsf - new script file
+# nsf — New Script File
 
-A minimal Unix utility to create executable Bash scripts with a shebang.
+Stop typing this every time:
+
+```bash
+touch script
+echo '#!/usr/bin/env bash' > script
+chmod +x script
+```
+
+Just run:
+
+```bash
+nsf script
+```
+
+Done.
+
+---
+
+## What is nsf?
+
+`nsf` is a tiny Unix utility that creates an executable Bash script with a proper shebang — instantly.
+
+No boilerplate. No repetition. No nonsense.
+
+---
 
 ## Features
-- Adds #!/usr/bin/env bash
-- Makes file executable
-- Prevents accidental overwrite
+
+- Adds `#!/usr/bin/env bash`
+- Makes the file executable
+- Prevents overwriting existing files
+- Lightweight and dependency-free
+- Works on Linux and macOS
+
+---
 
 ## Installation
 
-Clone repo and move binary to:
+### Global (recommended)
 
-    /usr/local/bin
+```bash
+git clone https://github.com/Varenya-Sawant/nsf.git
+cd nsf
+chmod +x nsf
+sudo mv nsf /usr/local/bin/
+```
 
-Or add bin/ to your PATH.
+### Local (no sudo)
+
+```bash
+mkdir -p ~/bin
+cp nsf ~/bin/
+chmod +x ~/bin/nsf
+export PATH="$HOME/bin:$PATH"
+```
+
+---
+
+## Usage
+
+Create a new script:
+
+```bash
+nsf mytool
+```
+
+That’s it.
+
+Open it:
+
+```bash
+nano mytool
+```
+
+It already contains:
+
+```bash
+#!/usr/bin/env bash
+```
+
+Now write your logic and run:
+
+```bash
+./mytool
+```
+
+---
+
+## Why?
+
+Because small tools should remove small friction.
+
+`nsf` exists to make starting scripts effortless.
+
+---
+
+
+
