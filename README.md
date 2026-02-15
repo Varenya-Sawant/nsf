@@ -92,7 +92,7 @@ Now write your logic and run:
 
 Because small tools should remove small friction.
 
-`nsf` exists to make starting scripts effortless.
+`nsf` exists to make shell scripting effortless.
 
 ---
 
