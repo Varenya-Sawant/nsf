@@ -22,7 +22,7 @@ if [[ -e "$name" ]]; then
 fi
 
 # Create file with shebang
-printf '#!/usr/bin/env bash\n' > "$name"
+printf '#!/usr/bin/env bash\n\n' > "$name"
 
 # Make it executable
 chmod +x --  "$name"
