@@ -43,8 +43,8 @@ No boilerplate. No repetition. No nonsense.
 ```bash
 git clone https://github.com/Varenya-Sawant/nsf.git
 cd nsf
-chmod +x nsf
-sudo mv nsf /usr/local/bin/
+chmod +x bin/nsf
+sudo mv bin/nsf /usr/local/bin/
 ```
 
 ### Local (no sudo)
