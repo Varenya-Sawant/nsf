@@ -45,15 +45,20 @@ git clone https://github.com/Varenya-Sawant/nsf.git
 cd nsf
 chmod +x bin/nsf
 sudo mv bin/nsf /usr/local/bin/
+
 ```
 
 ### Local (no sudo)
 
 ```bash
+git clone https://github.com/Varenya-Sawant/nsf.git
+cd nsf
 mkdir -p ~/bin
-cp nsf ~/bin/
+cp bin/nsf ~/bin/
 chmod +x ~/bin/nsf
-export PATH="$HOME/bin:$PATH"
+echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+
 ```
 
 ---
