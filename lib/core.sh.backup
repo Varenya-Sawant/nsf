@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+#
+# nsf - Core Functions
+# Main logic for script creation
+#
+
+# Initialize nsf
+init_nsf() {
+    # Initialize logger
+    init_logger
+    
+    # Load configuration
+    load_config
+    
+    # Initialize config if needed
+    init_config || return 1
+    
+    # Verify required directories exist
+    ensure_dir "$NSF_TEMPLATES_DIR" || return 1
+    ensure_dir "$NSF_CONFIG_DIR" || return 1
+}
+
+# Create new script file
+create_script() {
+    local filename="$1"
+    local extension
+    local author
+    local date_created
+    
+    # Extract extension
+    extension=$(get_extension "$filename")
+    if [[ -z "$extension" ]]; then
+        error_exit "No file extension provided. Supported: $(get_supported_extensions)" "$ERROR_NO_EXTENSION"
+    fi
+    
+    # Validate extension
+    if ! validate_extension "$extension"; then
+        error_exit "Unsupported extension: .$extension. Supported: $(get_supported_extensions)" "$ERROR_INVALID_EXTENSION"
+    fi
+    
+    debug "Using .$extension template"
+    log_info "Creating $(get_language_name "$extension") script: $filename"
+    
+    # Get metadata
+    author="${DEFAULT_AUTHOR}"
+    date_created="$(date +"$DEFAULT_DATE_FORMAT" 2>/dev/null || echo 'unknown')"
+    
+    # Check file existence
+    if ! check_file_exists "$filename"; then
+        exit "$ERROR_FILE_EXISTS"
+    fi
+    
+    # Generate script file
+    if ! generate_script "$filename" "$extension" "$author" "$date_created"; then
+        error_exit "Failed to create template" "$ERROR_CREATION_FAILED"
+    fi
+    
+    # Display summary
+    show_summary "$filename" "$extension" "$author" "$date_created"
+    
+    return 0
+}
+
+# Show creation summary
+show_summary() {
+    local filename="$1"
+    local extension="$2"
+    local author="$3"
+    local date="$4"
+    
+    show_section "Summary"
+    echo "File:       $filename"
+    echo "Language:   $(get_language_name "$extension")"
+    echo "Location:   $(pwd)/$filename"
+    echo "Author:     $author"
+    echo "Created:    $date"
+    echo
+    local max_attempts=2
+    local count=0
+    
+    while ((count < max_attempts)); do
+        echo -n "Open with (1=Vim, 2=Nano, 3=Skip)? [3]: "
+        read -t 5 choice
+        choice="${choice:-3}"
+        
+        case "$choice" in
+            1)
+                if command_exists vi || command_exists vim; then
+                    vi "$filename"
+                else
+                    log_error "Vim/vi not found"
+                fi
+                return 0
+                ;;
+            2)
+                if command_exists nano; then
+                    nano "$filename"
+                else
+                    log_error "Nano not found"
+                fi
+                return 0
+                ;;
+            3)
+                log_info "Skipped editor"
+                return 0
+                ;;
+            *)
+                log_warning "Invalid option. Please select 1, 2, or 3."
+                ((count++))
+                ;;
+        esac
+    done
+    
+    log_warning "Max attempts reached, skipping editor"
+}
+
+# Show help information
+show_help() {
+    cat <<'EOF'
+nsf - New Script File Creator
+
+USAGE:
+  nsf <filename>           Create a new script file
+  nsf --list               List available templates
+  nsf --preview <ext>      Preview a template
+  nsf --help               Show this help message
+  nsf --version            Show version information
+  nsf --config             Show configuration
+
+OPTIONS:
+  -h, --help               Display this help message
+  -v, --version            Display version information
+  -l, --list               List all supported templates
+  -p, --preview <ext>      Preview template for extension
+  -c, --config             Show current configuration
+  -d, --debug              Enable debug mode
+
+EXAMPLES:
+  nsf script.sh            Create a bash script
+  nsf hello.py             Create a Python script
+  nsf app.js               Create a JavaScript file
+  nsf --list               See all available templates
+  nsf --preview py         Preview Python template
+
+SUPPORTED EXTENSIONS:
+  sh, bash, py, js, ts, go, rs, rb, php
+
+For more information, visit:
+  https://github.com/Varenya-Sawant/nsf
+
+EOF
+}
+
+# Show version information
+show_version() {
+    cat <<EOF
+$NSF_NAME version $NSF_VERSION
+$NSF_DESCRIPTION
+
+Author: $DEFAULT_AUTHOR
+EOF
+}
+
+# Show configuration
+show_configuration() {
+    log_header "Current Configuration"
+    echo "Author:              $DEFAULT_AUTHOR"
+    echo "Make Executable:     $DEFAULT_MAKE_EXECUTABLE"
+    echo "Git Integration:     $ENABLE_GIT_INTEGRATION"
+    echo "Editor Selection:    $ENABLE_EDITOR_SELECTION"
+    echo "Timeout (seconds):   $TIMEOUT_SECONDS"
+    echo "Config File:         $NSF_CONFIG_FILE"
+    echo ""
+    [[ -f "$NSF_CONFIG_FILE" ]] && echo "✓ Config file exists" || echo "✗ Config file not found"
+}

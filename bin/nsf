@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+
+#
+# nsf - New Script File Creator
+# Version 3.1
+#
+# A lightweight utility for creating script file templates
+# Usage: nsf <filename> | nsf [--help|--version|--list]
+#
+
+set -euo pipefail
+
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Source library files
+source "${SCRIPT_DIR}/lib/constants.sh" || {
+    echo "Error: Failed to load constants" >&2
+    exit 1
+}
+
+source "${SCRIPT_DIR}/lib/logger.sh" || {
+    echo "Error: Failed to load logger" >&2
+    exit 1
+}
+
+source "${SCRIPT_DIR}/lib/utils.sh" || {
+    echo "Error: Failed to load utilities" >&2
+    exit 1
+}
+
+source "${SCRIPT_DIR}/lib/templates.sh" || {
+    echo "Error: Failed to load templates" >&2
+    exit 1
+}
+
+source "${SCRIPT_DIR}/lib/core.sh" || {
+    echo "Error: Failed to load core" >&2
+    exit 1
+}
+
+# Parse arguments
+main() {
+    # Initialize
+    if ! init_nsf; then
+        error_exit "Failed to initialize nsf"
+    fi
+    
+    # Handle arguments
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 0
+    fi
+    
+    case "$1" in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -v|--version)
+            show_version
+            exit 0
+            ;;
+        -l|--list)
+            list_templates
+            exit 0
+            ;;
+        -p|--preview)
+            [[ -z "${2:-}" ]] && error_exit "Extension required for --preview"
+            preview_template "$2"
+            exit 0
+            ;;
+        -c|--config)
+            show_configuration
+            exit 0
+            ;;
+        -d|--debug)
+            export NSF_DEBUG=true
+            debug "Debug mode enabled"
+            [[ -z "${2:-}" ]] && error_exit "Filename required with --debug"
+            create_script "$2"
+            exit $?
+            ;;
+        -*)
+            error_exit "Unknown option: $1"
+            ;;
+        *)
+            # Create script file
+            create_script "$1"
+            exit $?
+            ;;
+    esac
+}
+
+# Run main function
+main "$@"
