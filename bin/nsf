@@ -16,7 +16,9 @@ set -euo pipefail
 # BASH_SOURCE[0] is the path to THIS script, even when called via a symlink.
 # readlink -f resolves symlinks to the real path.
 # We cd to the parent of bin/ to get the project root.
-NSF_INSTALL_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && cd .. && pwd)"
+if [[ -z "${NSF_INSTALL_DIR:-}" ]]; then
+    NSF_INSTALL_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && cd .. && pwd)"
+fi
 export NSF_INSTALL_DIR
 
 # Source order matters: constants first (defines paths), then the rest
