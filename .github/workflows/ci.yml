@@ -75,6 +75,8 @@ jobs:
           ~/.local/bin/nsf --list
 
       - name: Run full test suite
+        env:
+          PATH: /home/runner/.local/bin:${{ env.PATH }}
         run: bash tests/test_nsf.sh
 
   # ---------------------------------------------------------------------------
