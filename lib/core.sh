@@ -65,13 +65,16 @@ create_single_file() {
     # -- Dry-run: show resolved output without writing anything ---------------
     if [[ "${dry_run}" == "true" ]]; then
         local filepath
+        local current_date
         filepath="$(pwd)/${filename}"
+        current_date=$(date +"${NSF_DATE_FORMAT}")
+
         echo "${CLR_BOLD}Dry run — nothing will be created${CLR_RESET}"
         echo ""
         printf "  %-14s %s\n" "Would create:" "${filepath}"
         printf "  %-14s %s\n" "Language:"     "${NSF_SUPPORTED_EXTENSIONS[${ext}]}"
         printf "  %-14s %s\n" "Author:"       "${NSF_AUTHOR}"
-        printf "  %-14s %s\n" "Date:"         "$(date +"${NSF_DATE_FORMAT}")"
+        printf "  %-14s %s\n" "Date:"         "${current_date}"
         [[ -n "${description}" ]] && printf "  %-14s %s\n" "Description:" "${description}"
         echo ""
         echo "${CLR_BLUE}$(printf '─%.0s' {1..56})${CLR_RESET}"
@@ -92,7 +95,8 @@ create_single_file() {
     fi
 
     # -- Handle existing file -------------------------------------------------
-    local filepath="$(pwd)/${filename}"
+    local filepath
+    filepath="$(pwd)/${filename}"
     if [[ -f "${filename}" ]]; then
         handle_existing_file "${filename}" "${force}" "${backup}" || return $?
     fi
@@ -108,10 +112,11 @@ create_single_file() {
     [[ "${ENABLE_GIT_INTEGRATION}" == "true" ]]  && git_add_file "${filename}"
 
     # -- Report success -------------------------------------------------------
-    local author date
+    local author
+    local created_date
     author="${NSF_AUTHOR}"
-    date=$(date +"${NSF_DATE_FORMAT}")
-    log_success_box "${filepath}" "${NSF_SUPPORTED_EXTENSIONS[${ext}]}" "${author}" "${date}"
+    created_date=$(date +"${NSF_DATE_FORMAT}")
+    log_success_box "${filepath}" "${NSF_SUPPORTED_EXTENSIONS[${ext}]}" "${author}" "${created_date}"
 
     # -- Offer to open in editor ----------------------------------------------
     [[ "${ENABLE_EDITOR_SELECTION}" == "true" ]] && prompt_editor "${filename}"
@@ -159,3 +164,4 @@ create_batch() {
 
     log_batch_summary "${results[@]}"
 }
+
