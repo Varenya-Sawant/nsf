@@ -153,7 +153,14 @@ render_template() {
     # We handle this by also providing NSF_BASENAME_PASCAL as a bonus token
     # e.g. "my_api" -> "MyApi"  (used in java.tmpl)
     local pascal_basename
-    pascal_basename=$(echo "${basename}" | sed 's/_\([a-z]\)/\U\1/g; s/^\([a-z]\)/\U\1/g')
+    # Pure bash PascalCase — works on Linux and macOS (no GNU sed needed)
+    pascal_basename=""
+    IFS='_' read -ra parts <<< "${basename}"
+    for part in "${parts[@]}"; do
+        if [[ -n "${part}" ]]; then
+            pascal_basename+="${part^}"
+        fi
+    done
 
     substitute_variables \
         "${author}" \
