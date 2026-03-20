@@ -1,10 +1,3 @@
-# =============================================================================
-# ci.yml — Continuous Integration pipeline for nsf
-# Runs on every push and every pull request.
-# Three jobs run in parallel: shellcheck lint, tests on Ubuntu, tests on macOS.
-# A PR must pass ALL three before it can be merged.
-# =============================================================================
-
 name: CI
 
 on:
@@ -15,9 +8,6 @@ on:
 
 jobs:
 
-  # ---------------------------------------------------------------------------
-  # Job 1: shellcheck — static analysis on all bash files
-  # ---------------------------------------------------------------------------
   shellcheck:
     name: shellcheck
     runs-on: ubuntu-latest
@@ -42,9 +32,6 @@ jobs:
           shellcheck -x completions/nsf.bash
           shellcheck -x tests/test_nsf.sh
 
-  # ---------------------------------------------------------------------------
-  # Job 2: test on Ubuntu (primary platform)
-  # ---------------------------------------------------------------------------
   test-ubuntu:
     name: Tests (Ubuntu)
     runs-on: ubuntu-latest
@@ -60,30 +47,27 @@ jobs:
       - name: Make scripts executable
         run: chmod +x bin/nsf install.sh uninstall.sh tests/test_nsf.sh
 
-      - name: Copy files to install location manually
+      - name: Set up nsf directory structure
         run: |
-          mkdir -p ~/.local/bin
-          mkdir -p ~/.local/lib
-          mkdir -p ~/.local/templates
-          cp -r lib/       ~/.local/lib/
-          cp -r templates/ ~/.local/templates/
-          cp bin/nsf       ~/.local/bin/nsf
-          chmod +x         ~/.local/bin/nsf
+          mkdir -p "$HOME/.local/bin"
+          mkdir -p "$HOME/.local/lib"
+          mkdir -p "$HOME/.local/templates"
+          cp -r lib/       "$HOME/.local/lib/"
+          cp -r templates/ "$HOME/.local/templates/"
+          cp bin/nsf       "$HOME/.local/bin/nsf"
+          chmod +x         "$HOME/.local/bin/nsf"
 
-      - name: Smoke test — version and help exit cleanly
+      - name: Smoke test
         run: |
-          bash ~/.local/bin/nsf --version
-          bash ~/.local/bin/nsf --help
-          bash ~/.local/bin/nsf --list
+          bash "$HOME/.local/bin/nsf" --version
+          bash "$HOME/.local/bin/nsf" --help
+          bash "$HOME/.local/bin/nsf" --list
 
       - name: Run full test suite
-        env:
-          NSF_INSTALL_DIR: /home/runner/.local/lib/nsf
-        run: bash tests/test_nsf.sh
+        run: |
+          export NSF_INSTALL_DIR="$HOME/.local"
+          bash tests/test_nsf.sh
 
-  # ---------------------------------------------------------------------------
-  # Job 3: test on macOS
-  # ---------------------------------------------------------------------------
   test-macos:
     name: Tests (macOS)
     runs-on: macos-latest
@@ -99,30 +83,27 @@ jobs:
       - name: Make scripts executable
         run: chmod +x bin/nsf install.sh uninstall.sh tests/test_nsf.sh
 
-      - name: Copy files to install location manually
+      - name: Set up nsf directory structure
         run: |
-          mkdir -p ~/.local/bin
-          mkdir -p ~/.local/lib
-          mkdir -p ~/.local/templates
-          cp -r lib/       ~/.local/lib/
-          cp -r templates/ ~/.local/templates/
-          cp bin/nsf       ~/.local/bin/nsf
-          chmod +x         ~/.local/bin/nsf
+          mkdir -p "$HOME/.local/bin"
+          mkdir -p "$HOME/.local/lib"
+          mkdir -p "$HOME/.local/templates"
+          cp -r lib/       "$HOME/.local/lib/"
+          cp -r templates/ "$HOME/.local/templates/"
+          cp bin/nsf       "$HOME/.local/bin/nsf"
+          chmod +x         "$HOME/.local/bin/nsf"
 
-      - name: Smoke tests
+      - name: Smoke test
         run: |
-          /opt/homebrew/bin/bash ~/.local/bin/nsf --version
-          /opt/homebrew/bin/bash ~/.local/bin/nsf --help
-          /opt/homebrew/bin/bash ~/.local/bin/nsf --list
+          /opt/homebrew/bin/bash "$HOME/.local/bin/nsf" --version
+          /opt/homebrew/bin/bash "$HOME/.local/bin/nsf" --help
+          /opt/homebrew/bin/bash "$HOME/.local/bin/nsf" --list
 
       - name: Run full test suite
-        env:
-          NSF_INSTALL_DIR: /Users/runner/.local/lib/nsf
-        run: /opt/homebrew/bin/bash tests/test_nsf.sh
+        run: |
+          export NSF_INSTALL_DIR="$HOME/.local"
+          /opt/homebrew/bin/bash tests/test_nsf.sh
 
-  # ---------------------------------------------------------------------------
-  # Job 4: changelog check
-  # ---------------------------------------------------------------------------
   changelog:
     name: Changelog updated
     runs-on: ubuntu-latest
