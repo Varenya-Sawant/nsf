@@ -164,8 +164,8 @@ step "Verifying installation"
 # Update PATH for this session so we can call nsf immediately
 export PATH="${NSF_BIN_DIR}:${PATH}"
 
-if "${NSF_BIN_DIR}/nsf" --version > /dev/null 2>&1; then
-    info "nsf $("${NSF_BIN_DIR}/nsf" --version) installed successfully"
+if bash "${NSF_BIN_DIR}/nsf" --version > /dev/null 2>&1; then
+    info "nsf $(bash "${NSF_BIN_DIR}/nsf" --version) installed successfully"
 else
     error "Installation verification failed — nsf --version returned non-zero"
     exit 1
