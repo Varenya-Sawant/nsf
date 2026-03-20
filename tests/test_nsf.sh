@@ -139,7 +139,7 @@ setup_tmpdir() {
 
 cleanup_tmpdir() {
     local tmpdir="$1"
-    cd /tmp
+    cd /tmp || exit
     rm -rf "${tmpdir}"
 }
 
@@ -176,7 +176,7 @@ test_file_creation_all_languages() {
 
     local tmpdir
     tmpdir=$(setup_tmpdir)
-    cd "${tmpdir}"
+    cd "${tmpdir}" || exit
 
     local -A test_cases=(
         [script.sh]="#!/usr/bin/env bash"
@@ -211,7 +211,7 @@ test_variable_substitution() {
 
     local tmpdir
     tmpdir=$(setup_tmpdir)
-    cd "${tmpdir}"
+    cd "${tmpdir}" || exit
 
     NSF_AUTHOR="Jane Tester" "${NSF_BIN}" mymodule.py > /dev/null 2>&1
     assert_file_contains "author token replaced"      mymodule.py "Jane Tester"
@@ -235,7 +235,7 @@ test_overwrite_protection() {
 
     local tmpdir
     tmpdir=$(setup_tmpdir)
-    cd "${tmpdir}"
+    cd "${tmpdir}" || exit
 
     # Create a file with known content
     echo "original content" > existing.sh
@@ -257,7 +257,7 @@ test_backup_flag() {
 
     local tmpdir
     tmpdir=$(setup_tmpdir)
-    cd "${tmpdir}"
+    cd "${tmpdir}" || exit
 
     echo "original" > myscript.sh
     "${NSF_BIN}" --backup myscript.sh > /dev/null 2>&1
@@ -276,7 +276,7 @@ test_dry_run() {
 
     local tmpdir
     tmpdir=$(setup_tmpdir)
-    cd "${tmpdir}"
+    cd "${tmpdir}" || exit
 
     "${NSF_BIN}" --dry-run analysis.py > /dev/null 2>&1
     assert_file_not_exists "dry-run creates nothing" "analysis.py"
@@ -297,7 +297,7 @@ test_batch_creation() {
 
     local tmpdir
     tmpdir=$(setup_tmpdir)
-    cd "${tmpdir}"
+    cd "${tmpdir}" || exit
 
     "${NSF_BIN}" handler.go middleware.go router.go > /dev/null 2>&1
     assert_file_exists "batch creates file 1" "handler.go"
@@ -344,7 +344,7 @@ test_error_cases() {
     # Path traversal attempt should be rejected
     local tmpdir
     tmpdir=$(setup_tmpdir)
-    cd "${tmpdir}"
+    cd "${tmpdir}" || exit
     assert_exit_fail "path traversal rejected" \
         "${NSF_BIN}" "path/to/file.sh"
     cleanup_tmpdir "${tmpdir}"
@@ -357,7 +357,7 @@ test_executable_bit() {
 
     local tmpdir
     tmpdir=$(setup_tmpdir)
-    cd "${tmpdir}"
+    cd "${tmpdir}" || exit
 
     export DEFAULT_MAKE_EXECUTABLE="true"
 
@@ -385,7 +385,7 @@ test_user_template_override() {
 
     local tmpdir
     tmpdir=$(setup_tmpdir)
-    cd "${tmpdir}"
+    cd "${tmpdir}" || exit
 
     # Create a fake user template directory with a custom python template
     local user_tmpl_dir="${tmpdir}/user_templates"
