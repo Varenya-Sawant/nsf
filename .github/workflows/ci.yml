@@ -33,16 +33,16 @@ jobs:
 
       - name: Run shellcheck on all shell files
         run: |
-          shellcheck bin/nsf
-          shellcheck lib/constants.sh
-          shellcheck lib/logger.sh
-          shellcheck lib/utils.sh
-          shellcheck lib/templates.sh
-          shellcheck lib/core.sh
-          shellcheck install.sh
-          shellcheck uninstall.sh
-          shellcheck completions/nsf.bash
-          shellcheck tests/test_nsf.sh
+          shellcheck -x bin/nsf
+          shellcheck -x lib/constants.sh
+          shellcheck -x lib/logger.sh
+          shellcheck -x lib/utils.sh
+          shellcheck -x lib/templates.sh
+          shellcheck -x lib/core.sh
+          shellcheck -x install.sh
+          shellcheck -x uninstall.sh
+          shellcheck -x completions/nsf.bash
+          shellcheck -x tests/test_nsf.sh
 
   # ---------------------------------------------------------------------------
   # Job 2: test on Ubuntu (primary platform)
