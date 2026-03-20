@@ -16,7 +16,11 @@ readonly NSF_NAME="nsf"
 # NSF_INSTALL_DIR is resolved from the real path of the running binary
 # so the tool works correctly from symlinks (e.g. ~/.local/bin/nsf -> /opt/nsf/bin/nsf)
 # -----------------------------------------------------------------------------
-NSF_INSTALL_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && cd .. && pwd)"
+# Allow NSF_INSTALL_DIR to be overridden by environment (needed for CI and testing).
+# Only resolve from BASH_SOURCE if not already set.
+if [[ -z "${NSF_INSTALL_DIR:-}" ]]; then
+    NSF_INSTALL_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && cd .. && pwd)"
+fi
 readonly NSF_INSTALL_DIR
 
 readonly NSF_TEMPLATE_DIR="${NSF_INSTALL_DIR}/templates"
