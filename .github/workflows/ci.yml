@@ -70,9 +70,9 @@ jobs:
 
       - name: Smoke test — version and help exit cleanly
         run: |
-          nsf --version
-          nsf --help
-          nsf --list
+          ~/.local/bin/nsf --version
+          ~/.local/bin/nsf --help
+          ~/.local/bin/nsf --list
 
       - name: Run full test suite
         run: bash tests/test_nsf.sh
