@@ -1,0 +1,40 @@
+#!/usr/bin/env php
+<?php
+// =============================================================================
+// {{NSF_FILENAME}}
+// Description : {{NSF_DESCRIPTION}}
+// Author      : {{NSF_AUTHOR}}
+// Date        : {{NSF_DATE}}
+// License     : {{NSF_LICENSE}}
+// =============================================================================
+
+declare(strict_types=1);
+
+// -----------------------------------------------------------------------------
+// Logging helpers
+// -----------------------------------------------------------------------------
+function log_info(string $msg): void  { echo "[INFO]  {$msg}" . PHP_EOL; }
+function log_error(string $msg): void { fwrite(STDERR, "[ERROR] {$msg}" . PHP_EOL); }
+
+// -----------------------------------------------------------------------------
+// Main logic
+// -----------------------------------------------------------------------------
+function main(array $argv): int
+{
+    log_info('Starting {{NSF_BASENAME}}');
+
+    try {
+        // Your code here
+
+        log_info('Done');
+        return 0;
+    } catch (Throwable $e) {
+        log_error($e->getMessage());
+        return 1;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Entry
+// -----------------------------------------------------------------------------
+exit(main($argv));

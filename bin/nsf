@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+# =============================================================================
+# nsf — New Script File creator
+# Entry point: argument parsing, flag state, dispatch to lib/ functions.
+# This file does three things only: validate environment, parse args, dispatch.
+# All real logic lives in lib/.
+# =============================================================================
+
+# -- Strict mode --------------------------------------------------------------
+# -e  exit immediately if any command returns non-zero
+# -u  treat unset variables as errors (catches typos)
+# -o pipefail  a pipeline fails if ANY command in it fails (not just the last)
+set -euo pipefail
+
+# -- Resolve install directory and source all lib files -----------------------
+# BASH_SOURCE[0] is the path to THIS script, even when called via a symlink.
+# readlink -f resolves symlinks to the real path.
+# We cd to the parent of bin/ to get the project root.
+NSF_INSTALL_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && cd .. && pwd)"
+export NSF_INSTALL_DIR
+
+# Source order matters: constants first (defines paths), then the rest
+# shellcheck source=lib/constants.sh
+source "${NSF_INSTALL_DIR}/lib/constants.sh"
+# shellcheck source=lib/logger.sh
+source "${NSF_INSTALL_DIR}/lib/logger.sh"
+# shellcheck source=lib/utils.sh
+source "${NSF_INSTALL_DIR}/lib/utils.sh"
+# shellcheck source=lib/templates.sh
+source "${NSF_INSTALL_DIR}/lib/templates.sh"
+# shellcheck source=lib/core.sh
+source "${NSF_INSTALL_DIR}/lib/core.sh"
+
+# -- Environment checks -------------------------------------------------------
+check_bash_version   # exits with clear message if Bash < 4.0
+load_config          # loads ~/.config/nsf/nsf.conf if it exists
+
+# -- Flag state ---------------------------------------------------------------
+# All flags start with safe defaults.
+# These are exported so create_batch can read them without passing each one.
+NSF_FLAG_FORCE="false"
+NSF_FLAG_BACKUP="false"
+NSF_FLAG_DRY_RUN="false"
+NSF_FLAG_DEBUG="false"
+NSF_FLAG_DESC="${NSF_DESCRIPTION}"   # pre-populated from config/env
+export NSF_FLAG_FORCE NSF_FLAG_BACKUP NSF_FLAG_DRY_RUN NSF_FLAG_DEBUG NSF_FLAG_DESC
+
+# -- Argument parsing ---------------------------------------------------------
+# We use a while/case loop rather than getopts because we need long flags
+# (--dry-run, --force, etc.) and getopts only handles short ones natively.
+# The shift command removes the current argument from $@ so the next
+# iteration of the loop sees the next argument.
+
+if [[ $# -eq 0 ]]; then
+    show_help
+    exit "${EXIT_OK}"
+fi
+
+# Collect filenames separately — they come after all flags are parsed
+declare -a NSF_FILES=()
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+
+        # -- Informational flags (print and exit) -----------------------------
+        -h|--help)
+            show_help
+            exit "${EXIT_OK}" ;;
+
+        -v|--version)
+            show_version
+            exit "${EXIT_OK}" ;;
+
+        -l|--list)
+            show_list
+            exit "${EXIT_OK}" ;;
+
+        -c|--config)
+            show_config
+            exit "${EXIT_OK}" ;;
+
+        # --preview requires the next argument to be the extension
+        -p|--preview)
+            if [[ -z "${2:-}" ]]; then
+                log_error "--preview requires an extension argument (e.g. nsf --preview py)"
+                exit "${EXIT_USAGE}"
+            fi
+            preview_template "$2"
+            exit $? ;;
+
+        # -- Behaviour flags (modify how files are created) -------------------
+        -n|--dry-run)
+            NSF_FLAG_DRY_RUN="true"
+            shift ;;
+
+        -f|--force)
+            NSF_FLAG_FORCE="true"
+            shift ;;
+
+        -b|--backup)
+            NSF_FLAG_BACKUP="true"
+            NSF_FLAG_FORCE="true"   # --backup implies --force (it already saves the original)
+            shift ;;
+
+        # --debug turns on verbose output AND creates the file
+        -d|--debug)
+            NSF_FLAG_DEBUG="true"
+            NSF_DEBUG="true"        # picked up by log_debug() in logger.sh
+            if [[ -z "${2:-}" ]]; then
+                log_error "--debug requires a filename argument"
+                exit "${EXIT_USAGE}"
+            fi
+            NSF_FILES+=("$2")
+            shift 2 ;;
+
+        # --desc requires the next argument to be the description string
+        -D|--desc)
+            if [[ -z "${2:-}" ]]; then
+                log_error "--desc requires a description argument (e.g. nsf --desc \"HTTP server\" api.go)"
+                exit "${EXIT_USAGE}"
+            fi
+            NSF_FLAG_DESC="$2"
+            shift 2 ;;
+
+        # -- Unknown flags ----------------------------------------------------
+        -*)
+            log_error "Unknown option: $1"
+            log_step  "Run 'nsf --help' for usage."
+            exit "${EXIT_USAGE}" ;;
+
+        # -- Filenames (anything that doesn't start with -) -------------------
+        *)
+            NSF_FILES+=("$1")
+            shift ;;
+
+    esac
+done
+
+# -- Validate: at least one filename must have been provided ------------------
+if [[ ${#NSF_FILES[@]} -eq 0 ]]; then
+    log_error "No filename provided."
+    log_step  "Usage: nsf [options] <filename> [filename ...]"
+    log_step  "Run 'nsf --help' for full usage."
+    exit "${EXIT_USAGE}"
+fi
+
+# -- Dispatch -----------------------------------------------------------------
+# Single file: call create_single_file directly (gives full output + editor prompt)
+# Multiple files: call create_batch (tracks results, prints summary table)
+
+if [[ ${#NSF_FILES[@]} -eq 1 ]]; then
+    create_single_file \
+        "${NSF_FILES[0]}" \
+        "${NSF_FLAG_FORCE}" \
+        "${NSF_FLAG_BACKUP}" \
+        "${NSF_FLAG_DRY_RUN}" \
+        "${NSF_FLAG_DESC}"
+    exit $?
+else
+    create_batch "${NSF_FILES[@]}"
+    exit $?
+fi

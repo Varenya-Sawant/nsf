@@ -1,0 +1,147 @@
+# =============================================================================
+# ci.yml — Continuous Integration pipeline for nsf
+# Runs on every push and every pull request.
+# Three jobs run in parallel: shellcheck lint, tests on Ubuntu, tests on macOS.
+# A PR must pass ALL three before it can be merged.
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  # ---------------------------------------------------------------------------
+  # Job 1: shellcheck — static analysis on all bash files
+  # Catches quoting bugs, word-splitting issues, and unsafe patterns
+  # before any code runs.
+  # ---------------------------------------------------------------------------
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: Run shellcheck on all shell files
+        run: |
+          shellcheck bin/nsf
+          shellcheck lib/constants.sh
+          shellcheck lib/logger.sh
+          shellcheck lib/utils.sh
+          shellcheck lib/templates.sh
+          shellcheck lib/core.sh
+          shellcheck install.sh
+          shellcheck uninstall.sh
+          shellcheck completions/nsf.bash
+          shellcheck tests/test_nsf.sh
+
+  # ---------------------------------------------------------------------------
+  # Job 2: test on Ubuntu (primary platform)
+  # ---------------------------------------------------------------------------
+  test-ubuntu:
+    name: Tests (Ubuntu)
+    runs-on: ubuntu-latest
+    needs: shellcheck     # only run tests if shellcheck passes
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Bash version
+        run: bash --version
+
+      - name: Make scripts executable
+        run: chmod +x bin/nsf install.sh uninstall.sh tests/test_nsf.sh
+
+      - name: Install nsf
+        run: ./install.sh --user
+
+      - name: Add ~/.local/bin to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Smoke test — version and help exit cleanly
+        run: |
+          nsf --version
+          nsf --help
+          nsf --list
+
+      - name: Run full test suite
+        run: bash tests/test_nsf.sh
+
+  # ---------------------------------------------------------------------------
+  # Job 3: test on macOS (checks Bash version detection works correctly)
+  # macOS ships Bash 3.2 — nsf should detect this and error clearly
+  # when invoked with the system bash. With brew bash (4+) it should work.
+  # ---------------------------------------------------------------------------
+  test-macos:
+    name: Tests (macOS)
+    runs-on: macos-latest
+    needs: shellcheck
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Bash 4+ via Homebrew
+        run: brew install bash
+
+      - name: Make scripts executable
+        run: chmod +x bin/nsf install.sh uninstall.sh tests/test_nsf.sh
+
+      - name: Install nsf (using brew bash)
+        run: /opt/homebrew/bin/bash install.sh --user
+
+      - name: Add ~/.local/bin to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Smoke tests
+        run: |
+          nsf --version
+          nsf --help
+          nsf --list
+
+      - name: Run full test suite
+        run: /opt/homebrew/bin/bash tests/test_nsf.sh
+
+  # ---------------------------------------------------------------------------
+  # Job 4: changelog check — fails if lib/ or bin/ changed without a
+  # CHANGELOG.md update. Keeps history honest.
+  # ---------------------------------------------------------------------------
+  changelog:
+    name: Changelog updated
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check CHANGELOG updated when code changes
+        run: |
+          changed_code=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+            | grep -E '^(bin/|lib/|templates/)' || true)
+
+          if [[ -n "${changed_code}" ]]; then
+            changed_changelog=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+              | grep 'CHANGELOG.md' || true)
+
+            if [[ -z "${changed_changelog}" ]]; then
+              echo "Code files changed but CHANGELOG.md was not updated."
+              echo "Changed files:"
+              echo "${changed_code}"
+              echo ""
+              echo "Please add an entry to CHANGELOG.md under [Unreleased]."
+              exit 1
+            fi
+          fi

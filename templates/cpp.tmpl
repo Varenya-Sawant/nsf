@@ -1,0 +1,37 @@
+// =============================================================================
+// {{NSF_FILENAME}}
+// Description : {{NSF_DESCRIPTION}}
+// Author      : {{NSF_AUTHOR}}
+// Date        : {{NSF_DATE}}
+// License     : {{NSF_LICENSE}}
+// =============================================================================
+
+#include <iostream>
+#include <stdexcept>
+#include <string>
+
+// -----------------------------------------------------------------------------
+// Main logic
+// -----------------------------------------------------------------------------
+int run(int argc, char* argv[])
+{
+    std::cout << "Starting {{NSF_BASENAME}}" << std::endl;
+
+    // Your code here
+
+    std::cout << "Done" << std::endl;
+    return 0;
+}
+
+// -----------------------------------------------------------------------------
+// Entry
+// -----------------------------------------------------------------------------
+int main(int argc, char* argv[])
+{
+    try {
+        return run(argc, argv);
+    } catch (const std::exception& e) {
+        std::cerr << "[ERROR] " << e.what() << std::endl;
+        return 1;
+    }
+}

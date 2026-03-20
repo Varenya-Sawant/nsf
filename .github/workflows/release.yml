@@ -1,0 +1,97 @@
+# =============================================================================
+# release.yml — Automated GitHub Release on version tag push
+#
+# Trigger: push a tag matching v* (e.g. git tag v3.2.0 && git push --tags)
+# What it does:
+#   1. Packages the project into a clean tarball (nsf-VERSION.tar.gz)
+#   2. Generates a SHA256 checksum file
+#   3. Creates a GitHub Release with both files attached
+#   4. Pulls the release notes from CHANGELOG.md automatically
+# =============================================================================
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write    # needed to create a GitHub Release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # -----------------------------------------------------------------------
+      # Extract version from the tag (strips the leading 'v')
+      # e.g. refs/tags/v3.2.0 -> 3.2.0
+      # -----------------------------------------------------------------------
+      - name: Extract version
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      # -----------------------------------------------------------------------
+      # Extract the release notes for this version from CHANGELOG.md
+      # Reads between "## [VERSION]" and the next "## [" heading
+      # -----------------------------------------------------------------------
+      - name: Extract release notes
+        id: notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          # Use awk to print lines between the version heading and the next heading
+          NOTES=$(awk "/^## \[${VERSION}\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md)
+          # GitHub Actions multiline output requires this delimiter syntax
+          echo "notes<<EOF" >> "$GITHUB_OUTPUT"
+          echo "${NOTES}" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      # -----------------------------------------------------------------------
+      # Build the release tarball — exclude git history and CI files
+      # -----------------------------------------------------------------------
+      - name: Build tarball
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ARCHIVE="nsf-${VERSION}.tar.gz"
+
+          tar -czf "${ARCHIVE}" \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='*.bak' \
+            --transform "s|^|nsf-${VERSION}/|" \
+            bin lib templates completions config tests \
+            install.sh uninstall.sh README.md CHANGELOG.md LICENSE CONTRIBUTING.md
+
+          echo "archive=${ARCHIVE}" >> "$GITHUB_ENV"
+
+      # -----------------------------------------------------------------------
+      # Generate SHA256 checksum — users can verify the download is intact
+      # -----------------------------------------------------------------------
+      - name: Generate checksum
+        run: |
+          sha256sum "${{ env.archive }}" > "${{ env.archive }}.sha256"
+          cat "${{ env.archive }}.sha256"
+
+      # -----------------------------------------------------------------------
+      # Create the GitHub Release with both files attached
+      # -----------------------------------------------------------------------
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "nsf ${{ steps.version.outputs.tag }}"
+          body: ${{ steps.notes.outputs.notes }}
+          files: |
+            ${{ env.archive }}
+            ${{ env.archive }}.sha256
+          draft: false
+          prerelease: false

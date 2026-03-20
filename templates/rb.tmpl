@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+# =============================================================================
+# {{NSF_FILENAME}}
+# Description : {{NSF_DESCRIPTION}}
+# Author      : {{NSF_AUTHOR}}
+# Date        : {{NSF_DATE}}
+# License     : {{NSF_LICENSE}}
+# =============================================================================
+
+# frozen_string_literal: true
+
+require 'logger'
+
+# -----------------------------------------------------------------------------
+# Logging
+# -----------------------------------------------------------------------------
+LOGGER = Logger.new($stdout)
+LOGGER.formatter = proc { |severity, _datetime, _progname, msg| "[#{severity}] #{msg}\n" }
+
+# -----------------------------------------------------------------------------
+# Main logic
+# -----------------------------------------------------------------------------
+def main
+  LOGGER.info('Starting {{NSF_BASENAME}}')
+
+  # Your code here
+
+  LOGGER.info('Done')
+rescue StandardError => e
+  LOGGER.error(e.message)
+  exit 1
+end
+
+# -----------------------------------------------------------------------------
+# Entry
+# -----------------------------------------------------------------------------
+main if __FILE__ == $PROGRAM_NAME

@@ -1,0 +1,18 @@
+# =============================================================================
+# .shellcheckrc — shellcheck configuration for nsf
+#
+# shellcheck is run on every file in lib/, bin/, and the installers.
+# Suppressions here are intentional and documented — not workarounds.
+# =============================================================================
+
+# SC1090: Can't follow non-constant source
+# We source lib files using a variable path (${NSF_INSTALL_DIR}/lib/...)
+# because the install location is resolved at runtime. This is correct
+# and safe — we use `# shellcheck source=lib/X.sh` inline annotations
+# on each source call to give shellcheck the static hint it needs.
+disable=SC1090
+
+# SC2034: Variable appears unused
+# Constants in constants.sh are used by files that source it.
+# shellcheck can't see across file boundaries, so it flags these as unused.
+disable=SC2034
