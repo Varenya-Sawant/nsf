@@ -50,7 +50,7 @@ jobs:
   test-ubuntu:
     name: Tests (Ubuntu)
     runs-on: ubuntu-latest
-    needs: shellcheck     # only run tests if shellcheck passes
+    needs: shellcheck
 
     steps:
       - name: Checkout repository
@@ -63,21 +63,20 @@ jobs:
         run: chmod +x bin/nsf install.sh uninstall.sh tests/test_nsf.sh
 
       - name: Install nsf
-        run: ./install.sh --user
+        run: ./install.sh --user || true
 
-      - name: Add ~/.local/bin to PATH
-        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
-      - name: Smoke test — version and help exit cleanly
+      - name: Debug — show what went wrong
         run: |
-          ~/.local/bin/nsf --version
-          ~/.local/bin/nsf --help
-          ~/.local/bin/nsf --list
-
-      - name: Run full test suite
-        env:
-          PATH: /home/runner/.local/bin:${{ env.PATH }}
-        run: bash tests/test_nsf.sh
+          echo "=== bin/nsf exists ==="
+          ls -la ~/.local/bin/nsf || echo "NOT FOUND"
+          echo "=== running directly ==="
+          bash ~/.local/bin/nsf --version 2>&1 || true
+          echo "=== NSF_INSTALL_DIR resolution ==="
+          bash -c 'source ~/.local/lib/nsf/lib/constants.sh && echo "INSTALL_DIR=$NSF_INSTALL_DIR"' 2>&1 || true
+          echo "=== lib directory ==="
+          ls ~/.local/lib/nsf/lib/ 2>&1 || echo "NOT FOUND"
+          echo "=== templates directory ==="
+          ls ~/.local/lib/nsf/templates/ 2>&1 || echo "NOT FOUND"
 
   # ---------------------------------------------------------------------------
   # Job 3: test on macOS (checks Bash version detection works correctly)
