@@ -63,11 +63,12 @@ jobs:
       - name: Copy files to install location manually
         run: |
           mkdir -p ~/.local/bin
-          mkdir -p ~/.local/lib/nsf
-          cp -r lib       ~/.local/lib/nsf/
-          cp -r templates ~/.local/lib/nsf/
-          cp bin/nsf      ~/.local/bin/nsf
-          chmod +x        ~/.local/bin/nsf
+          mkdir -p ~/.local/lib
+          mkdir -p ~/.local/templates
+          cp -r lib/       ~/.local/lib/
+          cp -r templates/ ~/.local/templates/
+          cp bin/nsf       ~/.local/bin/nsf
+          chmod +x         ~/.local/bin/nsf
 
       - name: Smoke test — version and help exit cleanly
         run: |
@@ -101,11 +102,12 @@ jobs:
       - name: Copy files to install location manually
         run: |
           mkdir -p ~/.local/bin
-          mkdir -p ~/.local/lib/nsf
-          cp -r lib       ~/.local/lib/nsf/
-          cp -r templates ~/.local/lib/nsf/
-          cp bin/nsf      ~/.local/bin/nsf
-          chmod +x        ~/.local/bin/nsf
+          mkdir -p ~/.local/lib
+          mkdir -p ~/.local/templates
+          cp -r lib/       ~/.local/lib/
+          cp -r templates/ ~/.local/templates/
+          cp bin/nsf       ~/.local/bin/nsf
+          chmod +x         ~/.local/bin/nsf
 
       - name: Smoke tests
         run: |
