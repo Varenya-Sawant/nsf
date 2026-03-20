@@ -158,16 +158,22 @@ fi
 
 # -----------------------------------------------------------------------------
 # Verify the installation works
+# The binary is called directly with its full path — never relying on PATH
+# because PATH may not include the install dir during the current session.
+# We also pass it explicitly to bash to avoid any shebang resolution issues
+# in environments where the default bash is too old (e.g. macOS).
 # -----------------------------------------------------------------------------
 step "Verifying installation"
 
-# Update PATH for this session so we can call nsf immediately
-export PATH="${NSF_BIN_DIR}:${PATH}"
+NSF_BINARY="${NSF_BIN_DIR}/nsf"
 
-if bash "${NSF_BIN_DIR}/nsf" --version > /dev/null 2>&1; then
-    info "nsf $(bash "${NSF_BIN_DIR}/nsf" --version) installed successfully"
+if bash "${NSF_BINARY}" --version > /dev/null 2>&1; then
+    NSF_VER=$(bash "${NSF_BINARY}" --version)
+    info "${NSF_VER} installed successfully"
 else
     error "Installation verification failed — nsf --version returned non-zero"
+    error "Binary path: ${NSF_BINARY}"
+    error "Try running manually: bash ${NSF_BINARY} --version"
     exit 1
 fi
 
