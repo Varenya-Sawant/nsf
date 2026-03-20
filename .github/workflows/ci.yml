@@ -63,7 +63,7 @@ jobs:
         run: chmod +x bin/nsf install.sh uninstall.sh tests/test_nsf.sh
 
       - name: Install nsf
-        run: ./install.sh --user || true
+        run: bash install.sh --user 2>&1 || true
 
       - name: Debug — show what went wrong
         run: |
@@ -71,13 +71,19 @@ jobs:
           ls -la ~/.local/bin/nsf || echo "NOT FOUND"
           echo "=== running directly ==="
           bash ~/.local/bin/nsf --version 2>&1 || true
-          echo "=== NSF_INSTALL_DIR resolution ==="
-          bash -c 'source ~/.local/lib/nsf/lib/constants.sh && echo "INSTALL_DIR=$NSF_INSTALL_DIR"' 2>&1 || true
           echo "=== lib directory ==="
           ls ~/.local/lib/nsf/lib/ 2>&1 || echo "NOT FOUND"
-          echo "=== templates directory ==="
+          echo "=== templates ==="
           ls ~/.local/lib/nsf/templates/ 2>&1 || echo "NOT FOUND"
-
+          echo "=== readlink on bin/nsf ==="
+          readlink -f ~/.local/bin/nsf 2>&1 || true
+          echo "=== constants.sh INSTALL_DIR ==="
+          bash -c '
+            NSF_INSTALL_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && cd .. && pwd)"
+            echo "resolved: $NSF_INSTALL_DIR"
+          ' 2>&1 || true
+          echo "=== manual version call ==="
+          NSF_INSTALL_DIR=~/.local/lib/nsf bash ~/.local/bin/nsf --version 2>&1 || true
   # ---------------------------------------------------------------------------
   # Job 3: test on macOS (checks Bash version detection works correctly)
   # macOS ships Bash 3.2 — nsf should detect this and error clearly
