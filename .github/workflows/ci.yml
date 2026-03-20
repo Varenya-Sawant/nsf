@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: shellcheck
 
-    steps:
+   steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -56,8 +56,13 @@ jobs:
           cp -r templates/ "$HOME/.local/templates/"
           cp bin/nsf       "$HOME/.local/bin/nsf"
           chmod +x         "$HOME/.local/bin/nsf"
-          echo "=== what got copied ==="
+
+      - name: Debug file layout
+        run: |
+          echo "=== full file tree ==="
           find "$HOME/.local" -type f | sort
+          echo "=== bin/nsf lines 20-30 ==="
+          sed -n '20,30p' "$HOME/.local/bin/nsf"
 
       - name: Smoke test
         run: |
