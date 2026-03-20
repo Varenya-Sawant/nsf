@@ -59,6 +59,7 @@ jobs:
 
       - name: Smoke test
         run: |
+          export NSF_INSTALL_DIR="$HOME/.local"
           bash "$HOME/.local/bin/nsf" --version
           bash "$HOME/.local/bin/nsf" --help
           bash "$HOME/.local/bin/nsf" --list
@@ -95,9 +96,10 @@ jobs:
 
       - name: Smoke test
         run: |
-          /opt/homebrew/bin/bash "$HOME/.local/bin/nsf" --version
-          /opt/homebrew/bin/bash "$HOME/.local/bin/nsf" --help
-          /opt/homebrew/bin/bash "$HOME/.local/bin/nsf" --list
+          export NSF_INSTALL_DIR="$HOME/.local"
+          bash "$HOME/.local/bin/nsf" --version
+          bash "$HOME/.local/bin/nsf" --help
+          bash "$HOME/.local/bin/nsf" --list
 
       - name: Run full test suite
         run: |
