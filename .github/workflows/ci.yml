@@ -56,6 +56,8 @@ jobs:
           cp -r templates/ "$HOME/.local/templates/"
           cp bin/nsf       "$HOME/.local/bin/nsf"
           chmod +x         "$HOME/.local/bin/nsf"
+          echo "=== what got copied ==="
+          find "$HOME/.local" -type f | sort
 
       - name: Smoke test
         run: |
