@@ -8,6 +8,11 @@
 # -----------------------------------------------------------------------------
 # Version
 # -----------------------------------------------------------------------------
+# Guard against being sourced twice in the same shell session
+if [[ -n "${NSF_VERSION:-}" ]]; then
+    return 0
+fi
+
 readonly NSF_VERSION="3.2.0"
 readonly NSF_NAME="nsf"
 
