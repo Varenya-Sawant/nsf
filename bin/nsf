@@ -22,7 +22,7 @@ fi
 export NSF_INSTALL_DIR
 
 
-source "${NSF_INSTALL_DIR}/lib/constants.sh"
+# shellcheck source=lib/constants.sh
 source "${NSF_INSTALL_DIR}/lib/constants.sh"
 # shellcheck source=lib/logger.sh
 source "${NSF_INSTALL_DIR}/lib/logger.sh"
