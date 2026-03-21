@@ -21,8 +21,12 @@ if [[ -z "${NSF_INSTALL_DIR:-}" ]]; then
 fi
 export NSF_INSTALL_DIR
 
-# Source order matters: constants first (defines paths), then the rest
-# shellcheck source=lib/constants.sh
+echo "[debug] NSF_INSTALL_DIR=${NSF_INSTALL_DIR}" >&2
+echo "[debug] looking for: ${NSF_INSTALL_DIR}/lib/constants.sh" >&2
+echo "[debug] file exists: $(test -f "${NSF_INSTALL_DIR}/lib/constants.sh" && echo YES || echo NO)" >&2
+ls "${NSF_INSTALL_DIR}/lib/" >&2 2>&1 || echo "[debug] lib/ dir does not exist" >&2
+
+source "${NSF_INSTALL_DIR}/lib/constants.sh"
 source "${NSF_INSTALL_DIR}/lib/constants.sh"
 # shellcheck source=lib/logger.sh
 source "${NSF_INSTALL_DIR}/lib/logger.sh"
