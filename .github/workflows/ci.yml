@@ -50,8 +50,6 @@ jobs:
       - name: Set up nsf directory structure
         run: |
           mkdir -p "$HOME/.local/bin"
-          mkdir -p "$HOME/.local/lib"
-          mkdir -p "$HOME/.local/templates"
           cp -r lib/       "$HOME/.local/lib/"
           cp -r templates/ "$HOME/.local/templates/"
           cp bin/nsf       "$HOME/.local/bin/nsf"
